@@ -2,11 +2,13 @@ from IPython.core.debugger import Pdb
 
 from IPython.core.completer import IPCompleter
 from .ptutils import IPythonPTCompleter
+from .shortcuts import register_ipython_shortcuts
 
 from prompt_toolkit.token import Token
 from prompt_toolkit.shortcuts import create_prompt_application
 from prompt_toolkit.interface import CommandLineInterface
 from prompt_toolkit.enums import EditingMode
+from prompt_toolkit.key_binding.manager import KeyBindingManager
 
 class TerminalPdb(Pdb):
     def __init__(self, *args, **kwargs):
@@ -27,8 +29,12 @@ class TerminalPdb(Pdb):
                                        )
             self._ptcomp = IPythonPTCompleter(compl)
 
+        kbmanager = KeyBindingManager.for_prompt()
+        register_ipython_shortcuts(kbmanager.registry, self.shell)
+
         self._pt_app = create_prompt_application(
                             editing_mode=getattr(EditingMode, self.shell.editing_mode.upper()),
+                            key_bindings_registry=kbmanager.registry,
                             history=self.shell.debugger_history,
                             completer= self._ptcomp,
                             enable_history_search=True,
